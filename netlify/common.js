@@ -322,23 +322,27 @@ var overrides = {
 function resolveZone(z) {
   z = overrides[z.toUpperCase()] ?? z;
 
+  if (typeof z === 'number') {
+    // If z is solely a number, assume it is GMT offset in hours, convert to minutes, and return it directly.
+    return z * 60;
+  }
+
   let gmtmatch = z
     .toString()
     .toUpperCase()
     .match(/^GMT([+\-]\d+)$/);
   console.log("gmtmatch", gmtmatch, z);
-  if (gmtmatch && gmtmatch[1]) z = gmtmatch[1];
+  
+  if (gmtmatch && gmtmatch[1]) {
+    z = gmtmatch[1];
 
-  if (z.startsWith("GMT+"))
-    if (isNaN(z)) {
-      let tzd = tc.TzDatabase.instance();
-      if (!tzd.exists(z)) {
-        // Uppercase for country names
-        z = z[0].toUpperCase() + z.substring(1);
-      }
-    } else {
-      z *= 60;
+    let tzd = tc.TzDatabase.instance();
+
+    if (!tzd.exists(z)) {
+      // Uppercase for country names
+      z = z[0].toUpperCase() + z.substring(1);
     }
+  }
 
   return z;
 }
